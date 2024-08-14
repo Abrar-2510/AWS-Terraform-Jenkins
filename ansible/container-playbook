@@ -1,0 +1,42 @@
+- name: Install Docker on all private EC2 instances and run the latest image
+  hosts: proxy
+  become: true
+  tasks:
+    - name: Run Yum Update
+      ansible.builtin.yum:
+        name: '*'
+        state: latest
+
+    - name: Install Docker
+      ansible.builtin.command: amazon-linux-extras install docker -y
+      register: install_docker_output
+      changed_when: "'Installed' in install_docker_output.stdout"  # Detect if the command changed the state
+
+    - name: Print the output of the 'Install Docker' command
+      ansible.builtin.debug:
+        var: install_docker_output.stdout_lines
+
+    - name: Start Docker Service
+      ansible.builtin.command: service docker start
+      register: start_service_output
+      changed_when: "'Starting' in start_service_output.stdout"
+
+    - name: Print the output of the 'Start Docker Service' command
+      ansible.builtin.debug:
+        var: start_service_output.stdout_lines
+
+    - name: Pull Latest Docker Image
+      ansible.builtin.command: docker pull public.ecr.aws/g4x4w1s3/monty-hall-game:e164f5485f753e77c8f919161c6d9f157e43646f
+      register: pull_image_output
+
+    - name: Print the output of the 'Pull Docker Image' command
+      ansible.builtin.debug:
+        var: pull_image_output.stdout_lines
+
+    - name: Run Docker container
+      ansible.builtin.command: docker run -d --name ECR-Container -p 80:5000 public.ecr.aws/g4x4w1s3/monty-hall-game:e164f5485f753e77c8f919161c6d9f157e43646f
+      register: run_container_output
+
+    - name: Print the output of the 'Run Docker Container' command
+      ansible.builtin.debug:
+        var: run_container_output.stdout_lines

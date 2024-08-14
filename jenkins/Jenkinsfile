@@ -1,0 +1,60 @@
+pipeline {
+    agent any
+    
+    parameters {
+        choice(choices: ['apply', 'destroy'], name: 'TERAFORM_ACTION')
+    }
+
+    stages {
+        
+        stage('Checkout') {
+            steps {
+                echo ' Checkout SCM '
+                git branch: 'dev', changelog: false, poll: false, url: 'https://github.com/Abrar-2510/graphing-calculator'
+                sh 'ls'
+            }
+        }
+
+        stage('Initialize') {
+            steps {
+                echo ' Terraform Initialization '
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws_credentials',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                    sh 'terraform init'
+                }
+            }
+        }
+        
+        stage('Validate') {
+            steps {
+                echo ' Terraform Validate '
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws_credentials',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                    sh 'terraform validate'
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo " Terraform ${params.TERAFORM_ACTION} "
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws_credentials',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                    sh "terraform ${params.TERAFORM_ACTION} -var-file prod.tfvars --auto-approve"
+                }
+            }
+        }
+    }
+}
