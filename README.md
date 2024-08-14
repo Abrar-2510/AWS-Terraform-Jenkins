@@ -1,1 +1,1 @@
-![infra](./draw.drwaio)
+![infra](draw.drwaio)
