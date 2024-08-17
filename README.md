@@ -117,7 +117,6 @@ Click on "New Node".
 Enter a name for the new node and select the appropriate node type (e.g., "Permanent Agent").
 Configure the node settings, including remote root directory and launch method.
 
-
 5- Create a New Pipeline for the Application
 Go to "New Item" again.
 Enter a name for the application pipeline and select "Pipeline".
